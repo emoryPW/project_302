@@ -1,0 +1,726 @@
+---
+title: "Analyzing the Distribution of Unemployment Rate by Various Factors"
+author: "Ruihan Zhang, Nora Zhou, Mandy Zhou, Xipu Wang"
+date: "2024-12-09"
+output: html_document
+---
+
+# I. Introduction
+
+The COVID-19 pandemic disrupted the global economy in ways we are still grappling with today, and the U.S. labor market has been no exception. Millions of workers suddenly lost their jobs, with industries like hospitality and retail bearing the brunt of the crisis. While there has been some recovery, unemployment remains a significant issue, especially for vulnerable groups like low-income workers, recent graduates, and those in the hardest-hit sectors. Existing research highlights significant disparities in unemployment rates across demographic groups, with racial minorities and women often facing systemic barriers in the labor market, while educational attainment emerges as a critical determinant of job opportunities and stability.(Gezici, 2020)
+
+Even though there have been many studies analyzing unemployment rates, we felt compelled to approach the problem in our own way through data analysis. As college seniors, the job market feels like an especially personal and urgent topic for us to discuss. Navigating the challenges of finding employment in today’s uncertain environment is something that resonates deeply with us.
+
+Our goal in this exploratory data analysis was to make sense of the employment landscape by visualizing key demographic trends, such as age, sex, and gender distributions within the workforce. We also wanted to map unemployment geographically across different U.S. states to identify key patterns. Finally, we set out to explore the relationship between unemployment and various work-related factors, including education levels and working conditions.
+
+Through this process, we hope to generate a clearer picture of the challenges faced by different demographic groups and industries in the context of unemployment. By sharing our findings, we aim to contribute meaningful insights that can help policymakers make informed decisions.
+
+# II. Dataset Description
+
+For this analysis, we downloaded our dataset from IPUMS USA, a trusted resource that collects, preserves, and harmonizes U.S. census microdata. Spanning decennial censuses from 1790 to 2010 and American Community Surveys (ACS) from 2000 to the present, the IPUMS dataset offers a wealth of information on demographic and employment-related variables. It provides easy access to extensive data accompanied by detailed documentation.
+
+We chose this dataset not only for its comprehensive and standardized format but also because it allowed us to examine multiple dimensions of the labor market as well as make sure the consistency and reliability in our analysis. The website interface allows us to select relevant variables themselves. We began by identifying our dependent variable, focusing on unemployment status, and then added several independent variables, including race, sex, and education level, to build a dataset tailored to our specific research goals.
+
+There are **two main reasons** why we chose the year 2021 for our analysis. First, it marked a critical period in the post-COVID-19 recovery. By narrowing our scope to this year, we aimed to capture the immediate impact of the pandemic on the labor market and examine key variables such as age, sex, gender, education, and working conditions. Second, the dataset for 2021 is one of the most complete and robust available, which provide a great scope of data that allows for a more comprehensive and accurate analysis.
+
+As we started on this data analysis, we were mindful of the **ethical consideration** that come with working with sensitive demographic information. The data we are working with has been anonymized, and we are committed to presenting our findings in aggregate form to ensure that no individual can be identified through our analysis. We also recognize the importance of interpreting the data thoughtfully and responsibly. Any conclusions we draw will be carefully supported by accurate and valid analysis to avoid misrepresentation or misinterpretation of the results. Our goal is not just to analyze the data but to do so in a way that respects the people and communities it represents.
+
+# III. Data Preprocessing
+After downloading the data from IPUMS USA, we first conducted data preprocessing to extract the original dataset and performed necessary cleaning, such as selecting important variables and handling missing values, to ensure it was properly structured and ready for analysis.
+
+## Install packages and load libraries 
+In the first step, we installed the relevant packages for data cleaning, manipulation, and visualization, and then loaded the necessary libraries. As mentioned in class, we imported important libraries such as tidyverse, ggplot2, and dplyr. Also, new packages were added as needed when we required additional functionality for the analysis.
+
+```{r}
+# Install the necessary packages
+#install.packages("tidyverse")
+#install.packages("maps")
+#install.packages("ggplot2")
+#install.packages("readr")
+#install.packages("viridis")
+#install.packages("dplyr")
+```
+
+```{r}
+# Load the libraries
+library(tidyverse)
+library(maps)
+library(ggplot2)
+library(readr)
+library(viridis)
+library(dplyr)
+```
+
+## Load Raw Data
+Furthermore, we load raw data allows us to start the data analysis process by bringing the dataset into the environment. This dataset contains all the variables collected from the IPUMS USA.
+```{r}
+# Load Raw Data
+raw_data <- read_csv("Dataset/original_data.csv",show_col_types = FALSE)
+```
+
+## Select the Important Variables
+After careful discussion and evaluation, we selected the most important variables, narrowing down the dataset to focus on columns that are directly relevant to our analysis. Initially, we downloaded all the variables we thought might relate to education level and employment outcomes. This approach allowed us to cast a wide net and ensure we didn't overlook potentially significant factors. However, as we examined the data more closely, we discovered several challenges. First, some variables were highly incomplete, with a significant portion of missing values. And some did not contain the critical information necessary for addressing our research objectives. To address these issues, we grouped the variables into two main categories: demographic variables (such as age, sex, race, and education level) and work-related variables (such as employment status and working conditions).
+
+Within each category, we evaluated the variables based on their completeness and relevance. This process led us to prioritize those that were both comprehensive and directly aligned with the focus of our study. 
+```{r}
+# Select the important variables
+selected_data <- raw_data %>%
+  select(STATEICP, AGE, SEX, RACE, EDUC, EMPSTAT, OCC2010, LABFORCE, UHRSWORK)
+```
+
+## General Data Cleaning
+By applying the necessary cleaning steps, we ensure the dataset is accurate, consistent, and ready for analysis. This involves handling missing data and removing duplicates.
+
+### Handling Missing Data
+During our initial review, we noticed some variables had a lot of missing values and sometimes over 50% of missing values. Keeping these would have risked bias and skewed our results, so we decided to remove them. This step was crucial to make sure our conclusions were reliable and based on solid, representative data.
+```{r}
+# Drop NAs
+selected_data_NA <- selected_data %>% 
+  drop_na()
+```
+
+### Removing Duplicates
+Furthermore, removing duplicates ensures our analysis remains accurate and unbiased by eliminating repetitive information that could influence the results. Duplicate  can inflate certain values, which may gives a false impression of trends or relationships in the data. For example, if the same individual or observation is counted multiple times, it could lead to overrepresentation of specific demographics or outcomes.
+```{r}
+# Remove duplicates
+cleaned_data <- selected_data_NA %>% 
+  distinct()
+cleaned_data<- cleaned_data[cleaned_data$EMPSTAT %in% c(1, 2), ]
+```
+
+# IV. Data Overview
+After preprocessing the data, the dataset now includes detailed information on age, gender, race, education, occupation, labor force participation, etc. These variables enable us to explore the connections between demographic characteristics, skill levels, and unemployment outcomes. By analyzing education levels and employment-related factors, we aim to identify trends in how different groups experience unemployment and how skills and labor force participation correlate with job status.
+
+## Important Variables after selection
+
+| Variable Name | Interpretation |
+|---------------|----------------|
+| `STATEICP`    | Identifies the state in which the housing unit was located using the coding scheme developed by the Inter-University Consortium for Political and Social Research (ICPSR). |
+| `Age`         | Reports the person's age in years as of the last birthday. |
+| `sex`         | Reports whether the person was male or female. |
+| `Race`        | Indicates the total number of major race groups reported for an individual. |
+| `EDUC`        | Indicates respondents' educational attainment as measured by the highest year of school or degree completed. |
+| `EMPSTAT`     | Indicates whether the respondent was part of the labor force—working or seeking work—and, if so, whether the person was currently unemployed. |
+| `OCC2010`     | Offers a consistent long-term classification of occupations. |
+| `LABFORCE`    | A dichotomous variable indicating whether a person participated in the labor force. |
+| `UHRSWORK`    | Reports the number of hours per week that the respondent usually worked if they worked during the previous year. |
+
+
+# V. Data Analysis
+After preparing the dataset through preprocessing, we now delve into the analysis phase to uncover patterns and insights about unemployment (UE). With the data cleaned and organized, the focus shifts to understanding how unemployment rates vary across different states and demographic groups, as well as the role of education in employment stability.
+
+Our first step is to examine the geographical distribution of unemployment across states. By visualizing unemployment rates at the state level, we aim to identify regional disparities. This analysis not only highlights areas with consistently high or low unemployment but also provides a broad perspective on the dataset’s spread, serving as a foundation for more detailed investigations.
+
+Next, we turn our attention to how demographic factors shape unemployment trends. This involves breaking down the data by race, gender, and age to pinpoint which groups face the greatest challenges in maintaining employment. For example, analyzing unemployment rates by race and gender reveals whether certain racial groups experience higher unemployment and whether this pattern differs across genders. Similarly, exploring the intersection of age and race sheds light on how unemployment rates shift across age groups within different racial categories. This layered approach helps us understand the nuanced ways these factors interact, offering a more comprehensive view of demographic disparities.
+
+Finally, we explore the impact of education on unemployment. Education is a critical factor influencing job stability, and this part of the analysis seeks to determine whether higher levels of educational attainment correspond to lower unemployment rates. We also consider potential confounding variables that might influence this relationship, ensuring that our conclusions accurately reflect the data.
+
+## Distribution of unemployment across states
+To better understand the landscape of unemployment, we began by analyzing the raw counts of unemployed individuals in each state. This approach provided a straightforward look at how unemployment numbers vary geographically. Before diving into the analysis, we made necessary adjustments to the dataset, including renaming state codes to their full names, ensuring clarity in the results.
+
+```{r}
+# Create state code to convert number to state name
+state_codes <- c(
+  `1` = 'Connecticut',
+  `2` = 'Maine',
+  `3` = 'Massachusetts',
+  `4` = 'New Hampshire',
+  `5` = 'Rhode Island',
+  `6` = 'Vermont',
+  `11` = 'Delaware',
+  `12` = 'New Jersey',
+  `13` = 'New York',
+  `14` = 'Pennsylvania',
+  `21` = 'Illinois',
+  `22` = 'Indiana',
+  `23` = 'Michigan',
+  `24` = 'Ohio',
+  `25` = 'Wisconsin',
+  `31` = 'Iowa',
+  `32` = 'Kansas',
+  `33` = 'Minnesota',
+  `34` = 'Missouri',
+  `35` = 'Nebraska',
+  `36` = 'North Dakota',
+  `37` = 'South Dakota',
+  `40` = 'Virginia',
+  `41` = 'Alabama',
+  `42` = 'Arkansas',
+  `43` = 'Florida',
+  `44` = 'Georgia',
+  `45` = 'Louisiana',
+  `46` = 'Mississippi',
+  `47` = 'North Carolina',
+  `48` = 'South Carolina',
+  `49` = 'Texas',
+  `51` = 'Kentucky',
+  `52` = 'Maryland',
+  `53` = 'Oklahoma',
+  `54` = 'Tennessee',
+  `56` = 'West Virginia',
+  `61` = 'Arizona',
+  `62` = 'Colorado',
+  `63` = 'Idaho',
+  `64` = 'Montana',
+  `65` = 'Nevada',
+  `66` = 'New Mexico',
+  `67` = 'Utah',
+  `68` = 'Wyoming',
+  `71` = 'California',
+  `72` = 'Oregon',
+  `73` = 'Washington',
+  `81` = 'Alaska',
+  `82` = 'Hawaii',
+  `83` = 'Puerto Rico',
+  `96` = 'State groupings'
+)
+```
+
+```{r}
+# Create a new column 'StateName' in the 'cleaned_data' dataframe
+cleaned_data$State <- state_codes[as.character(cleaned_data$STATEICP)]
+
+# Filter data to include only unemployed individuals and count unemployment by state
+unemployment_by_state <- cleaned_data %>%
+  filter(EMPSTAT == 2) %>% 
+  group_by(State) %>%
+  summarise(Unemployed_Count = n()) 
+
+# Calculate the mean, median, and standard deviation of unemployment counts across states
+mean_unemployed <- mean(unemployment_by_state$Unemployed_Count, na.rm = TRUE)
+median_unemployed <- median(unemployment_by_state$Unemployed_Count, na.rm = TRUE)
+std_unemployed <- sd(unemployment_by_state$Unemployed_Count, na.rm = TRUE)
+min_unemployed <- min(unemployment_by_state$Unemployed_Count, na.rm = TRUE)
+max_unemployed <- max(unemployment_by_state$Unemployed_Count, na.rm = TRUE)
+
+# Identify the state with the minimum number of unemployed individuals
+state_with_min_unemployment <- unemployment_by_state %>%
+  filter(Unemployed_Count == min(Unemployed_Count, na.rm = TRUE))
+
+# Identify the state with the maximum number of unemployed individuals
+state_with_max_unemployment <- unemployment_by_state %>%
+  filter(Unemployed_Count == max(Unemployed_Count, na.rm = TRUE))
+
+# View the results
+print(state_with_min_unemployment)
+print(state_with_max_unemployment)
+```
+
+```{r}
+# Create a data frame to display the Statistic metrics
+statistic_metrics <- data.frame(
+  Statistic = c("Mean", "Median", "Standard Deviation", "Minimum", "Maximum"),
+  Result = c(mean_unemployed, median_unemployed, std_unemployed, min_unemployed, max_unemployed)
+)
+
+# View the metrics table
+print(statistic_metrics)
+```
+This analysis shows us some key insights into unemployment distribution across states. On average, states reported approximately 1,713 unemployed individuals, with a median of 1,153. The lower median compared to the mean indicated a right-skewed distribution, where states like California, with significantly higher counts, pulled the average upwards. This pattern highlights the uneven geographical distribution of unemployment.
+
+The standard deviation of 2,371 demonstrated notable variability among states, reflecting substantial differences in economic and demographic conditions. North Dakota recorded the lowest count at 94, consistent with its small population, while California had the highest at 14,215, aligning with its status as the most populous state.
+
+However, these raw counts must be interpreted cautiously as they reflect population sizes. Larger states naturally have higher unemployment numbers, irrespective of unemployment rates, while smaller states show lower counts. To get a more accurate understanding of unemployment across states, it is important to calculate the unemployment rate rather than relying on raw counts. The unemployment rate adjusts for population size, providing a clearer picture of how each state is affected relative to its workforce.
+
+```{r}
+cleaned_data$Unemployed <- ifelse(cleaned_data$EMPSTAT == 2, 1, 0)
+state_unemployment <- cleaned_data %>%
+  group_by(State) %>%
+  summarize(
+    Total_Population = n(),
+    Total_Unemployed = sum(Unemployed, na.rm = TRUE)
+  ) %>%
+  mutate(
+    Unemployment_Rate = (Total_Unemployed / Total_Population) * 100
+  )
+```
+
+
+```{r}
+states_map <- map_data("state")
+```
+
+
+```{r}
+state_unemployment <- state_unemployment %>%
+  mutate(region = tolower(State))
+map_data <- left_join(states_map, state_unemployment, by = "region")
+ggplot(map_data, aes(x = long, y = lat, group = group, fill = Unemployment_Rate)) +
+  geom_polygon(color = "white") +
+  coord_fixed(1.3) +
+  scale_fill_viridis(
+    option = "magma",
+    na.value = "grey80",
+    name = "Unemployment Rate (%)"
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Unemployment Rate by State",
+    caption = "Source: Cleaned Datas"
+  ) +
+  theme(
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    legend.position = "right"
+  )
+```
+
+The analysis highlighted distinct unemployment patterns across U.S. regions, each shaped by unique economic factors. In the Northern Midwest, states like Montana, North Dakota, and Nebraska reported unemployment rates below 4%. This stability is likely due to industries such as agriculture and energy, along with smaller populations that contribute to steady labor markets.
+
+In the Southeast, unemployment rates averaged around 5%, with states like Florida, Georgia, and Louisiana facing challenges. Shifts in key industries like tourism and manufacturing, along with regional economic policies, may explain these elevated rates, creating vulnerabilities in employment stability. The West Coast, particularly California and Nevada, revealed the highest unemployment rates, exceeding 8%. Urban centers and dominant sectors like technology, entertainment, and hospitality, prone to economic fluctuations, heavily influence these figures.
+
+These patterns emphasize the need for region-specific policies to address unemployment challenges effectively, promoting economic growth while considering the unique needs of each area.
+
+
+## Analysis on demographic features
+Building on the geographic insights, we now turn to demographic factors—examining how unemployment varies across race, sex, and age—to uncover disparities affecting different population groups nationwide. These factors are essential in understanding unemployment disparities, as they often reflect systemic inequities, differences in labor participation, and challenges faced by specific age groups during economic recovery.
+
+### Race
+The first variable we looked on is **Race**.
+```{r}
+race_unemployment <- cleaned_data %>%
+  group_by(RACE, EMPSTAT) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  spread(key = EMPSTAT, value = count, fill = 0) %>%
+  rename(
+    employed = `1`,
+    unemployed = `2`
+  )
+
+race_unemployment <- race_unemployment %>%
+  mutate(total = employed + unemployed,
+         unemployment_rate = unemployed / total)
+
+```
+
+```{r}
+# Create a data frame for race values and labels
+race_table <- data.frame(
+  Value = c("1", "2", "3", "4", "5", "6", "7", "8", "9"),
+  Label = c(
+    "White",
+    "Black/African American",
+    "American Indian or Alaska Native",
+    "Chinese",
+    "Japanese",
+    "Other Asian or Pacific Islander",
+    "Other race, nec",
+    "Two major races",
+    "Three or more major races"
+  )
+)
+
+# Convert RACE in race_unemployment to character to match race_table
+race_unemployment <- race_unemployment %>%
+  mutate(RACE = as.character(RACE))
+
+# Now merge race labels into the unemployment data
+race_unemployment <- race_unemployment %>%
+  left_join(race_table, by = c("RACE" = "Value"))
+
+# Display the final table
+print(race_unemployment)
+
+
+```
+
+
+
+```{r}
+# Plot the unemployment rate by race using the race labels
+ggplot(race_unemployment, aes(x = Label, y = unemployment_rate)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  labs(
+    title = "Unemployment Rate by Race",
+    x = "Race",
+    y = "Unemployment Rate",
+    caption = "Source: Cleaned Data"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels if needed
+```
+
+The data reveals significant disparities in unemployment rates across racial groups. Black/African Americans and American Indians or Alaska Natives exhibit the highest unemployment rates, exceeding 10%, highlighting systemic challenges and inequities these groups may face in securing employment. In contrast, White individuals show a relatively low unemployment rate of around 5%, suggesting better access to job opportunities. Similarly, Chinese and Japanese groups also display lower unemployment rates, potentially reflecting different economic opportunities or resource access. Meanwhile, multiracial categories, such as individuals identifying with Two Major Races or Three or More Major Races, experience higher unemployment rates compared to some single-race groups, indicating unique challenges they may encounter in the labor market. Overall, the data underscores the impact of systemic disparities on employment outcomes for certain racial groups.
+
+
+### Sex
+Then we move on to analyze **Sex**.
+```{r}
+# Data transformation for sex and employment status
+sex_data <- cleaned_data %>%
+  mutate(
+    SEX = factor(SEX, levels = c(1, 2, 9), labels = c("Male", "Female", "Missing/Blank")),
+    EMPSTAT = factor(EMPSTAT, levels = c(1, 2), labels = c("Employed", "Unemployed")),
+  )
+
+sex_unemployment <- sex_data %>%
+  filter(SEX %in% c("Male", "Female")) %>%  
+  group_by(SEX, EMPSTAT) %>%
+  summarise(count = n(), .groups = 'drop') %>%  
+  mutate(percentage = count / sum(count) * 100)  
+
+print("Sex vs. Employment Status Percentage Data:")
+print(sex_unemployment)
+
+ggplot(sex_unemployment, aes(x = EMPSTAT, y = percentage, fill = SEX)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Sex vs. Employment Status (Percentage)", x = "Employment Status", y = "Percentage (%)") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Male" = "lightblue", "Female" = "pink")) 
+
+```
+```{r}
+# Filter and summarize for males and females only, calculating percentage for each EMPSTAT category independently
+sex_unemployment <- sex_data %>%
+  filter(SEX %in% c("Male", "Female")) %>%
+  group_by(EMPSTAT, SEX) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  group_by(EMPSTAT) %>%
+  mutate(percentage = count / sum(count) * 100)
+
+# Create a full pie chart for both Employed and Unemployed, including percentage labels
+ggplot(sex_unemployment, aes(x = "", y = percentage, fill = SEX)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  facet_wrap(~EMPSTAT, ncol = 2) + # Separate pie charts for employed and unemployed
+  geom_text(aes(label = paste0(round(percentage, 1), "%")), 
+            position = position_stack(vjust = 0.5)) + # Add percentage labels
+  labs(title = "Sex vs. Employment Status (Percentage)", fill = "SEX") +
+  theme_void() + # Removes axis and background for pie chart style
+  scale_fill_manual(values = c("Male" = "lightblue", "Female" = "pink")) +
+  theme(legend.position = "right", strip.text = element_text(size = 14)) # Adjust legend and labels
+
+```
+
+The analysis reveals a relatively balanced gender distribution in both employment and unemployment categories. Among employed individuals, 52.2% are male, and 47.8% are female, showing a slight male majority. Similarly, for unemployed individuals, 52.6% are male, and 47.4% are female, indicating consistent trends across both groups. The bar chart reinforces these findings, with a larger proportion of both men and women employed compared to those unemployed. This minimal gender disparity suggests that factors beyond gender, such as age, education, or race, might play a more critical role in influencing employment outcomes.
+
+### Age
+The last demographic factor we analyzed is **Age**.
+```{r}
+# Create age group variable
+cleaned_data$AgeGroup <- cut(
+  cleaned_data$AGE,
+  breaks = seq(0, 100, by = 10),
+  right = FALSE,
+  labels = paste(seq(0, 90, by = 10), seq(9, 99, by = 10), sep = "-")
+)
+
+
+
+cleaned_data$Unemployed <- ifelse(cleaned_data$EMPSTAT == 2, 1, 0)
+age_unemployment <- cleaned_data %>%
+  filter(!is.na(AgeGroup)) %>%
+  group_by(AgeGroup) %>%
+  summarize(
+    Total_Population = n(),
+    Total_Unemployed = sum(Unemployed, na.rm = TRUE)
+  ) %>%
+  mutate(
+    Unemployment_Rate = (Total_Unemployed / Total_Population) * 100
+  )
+
+
+print("Unemployment by Age Group:")
+print(age_unemployment)
+
+ggplot(data = age_unemployment, aes(x = AgeGroup, y = Unemployment_Rate)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  theme_minimal() +
+  labs(
+    title = "Unemployment Rate by Age Group",
+    x = "Age Group",
+    y = "Unemployment Rate (%)"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+```
+
+The unemployment rate from ages 10 to 79 shows a general negative correlation, with younger individuals experiencing higher unemployment rates, gradually declining with age. The 10-19 age group has the highest rate, over 12%, likely due to limited experience and many still being in school. This decline continues until around 60-69, where unemployment stabilizes at lower levels (5-6%).
+However, a slight upward trend appears in the 70-79 age group, rising to approximately 6%, possibly due to partial retirement or age-related barriers to employment. Beyond 80, the data becomes less representative as most individuals in this age range are retired or not actively seeking work, skewing the unemployment rate. Overall, the trend reflects declining unemployment during prime working years (30-69), with a small increase among older workers (70-79).
+
+
+### Cross-variable analysis
+After investigating single factors, we would like to conduct a cross-variable analysis for the three elements. This will help us better understand the demographic distribution of the unemployment rate and gain more insight into the relationships between these variables.
+
+#### Race & Age
+```{r}
+df <- cleaned_data
+
+df$Unemployed <- ifelse(df$EMPSTAT == 2, 1, 0)
+
+# Create Age Groups
+df$AgeGroup <- cut(
+  df$AGE,
+  breaks = seq(0, 100, by = 10),
+  right = FALSE,
+  labels = paste(seq(0, 90, by = 10), seq(9, 99, by = 10), sep = "-")
+)
+
+# Map RACE Codes to Descriptive Labels
+race_codes <- c(
+  `1` = 'White',
+  `2` = 'Black',
+  `3` = 'American Indian or Alaska Native',
+  `4` = 'Chinese',
+  `5` = 'Japanese',
+  `6` = 'Other Asian or Pacific Islander',
+  `7` = 'Other Race',
+  `8` = 'Two or More Races'
+)
+
+df$Race <- race_codes[as.character(df$RACE)]
+
+# Calculate Unemployment Rate by Race and Age Group
+race_age_unemployment <- df %>%
+  filter(!is.na(AgeGroup) & !is.na(Race)) %>%
+  group_by(Race, AgeGroup) %>%
+  summarize(
+    Total_Population = n(),
+    Total_Unemployed = sum(Unemployed, na.rm = TRUE)
+  ) %>%
+  mutate(
+    Unemployment_Rate = (Total_Unemployed / Total_Population) * 100
+  )
+
+# Ensure Age Groups are Ordered Correctly
+race_age_unemployment$AgeGroup <- factor(
+  race_age_unemployment$AgeGroup,
+  levels = unique(df$AgeGroup)
+)
+
+# Visualize the Relationship - Heatmap
+ggplot(data = race_age_unemployment, aes(x = AgeGroup, y = Race, fill = Unemployment_Rate)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(
+    low = "lightblue",
+    high = "red",
+    na.value = "grey80",
+    name = "Unemployment Rate (%)"
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Unemployment Rate by Race and Age Group",
+    x = "Age Group",
+    y = "Race"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+To begin our cross-variable analysis, we first examine the interplay between race and age. By focusing on the core working-age population, we can explore how unemployment trends evolve across different age groups within racial categories.
+
+Unemployment rates for young adults aged 20-29 are notably higher, especially among Black and American Indian or Alaska Native populations. This might reflect systemic barriers that hinder their transition from education to the workforce. Conversely, White, Chinese, and Japanese young adults experience lower unemployment, likely due to better access to education and resources that support early employment success.
+
+Between ages 30-59, unemployment rates stabilize across most racial groups. This indicates greater job security and career stability during these prime working years. However Black and American Indian or Alaska Native individuals still face higher unemployment.
+
+For those nearing retirement, unemployment rates increase slightly for some groups, such as Other Asian or Pacific Islander and American Indian or Alaska Native populations. We think that is is potentially due to age discrimination or job retention challenges. These disparities underscore the need for equitable policies promoting early career opportunities and age-friendly workplaces.
+
+#### Sex & Age
+```{r}
+df$Unemployed <- ifelse(df$EMPSTAT == 2, 1, 0)
+
+sex_codes <- c('1' = 'Male', '2' = 'Female')
+df$Sex <- sex_codes[as.character(df$SEX)]
+
+
+race_codes <- c(
+  '1' = 'White',
+  '2' = 'Black',
+  '3' = 'American Indian or Alaska Native',
+  '4' = 'Asian',
+  '5' = 'Asian',
+  '6' = 'Asian',
+  '7' = 'Other Race',
+  '8' = 'Two or More Races'
+)
+df$Race <- race_codes[as.character(df$RACE)]
+
+df$AgeGroup <- cut(
+  df$AGE,
+  breaks = seq(0, 100, by = 10),
+  right = FALSE,
+  labels = paste0(seq(0, 90, by = 10), "-", seq(9, 99, by = 10))
+)
+
+df$AGE <- as.numeric(df$AGE)
+
+age_sex_unemployment <- df %>%
+  filter(!is.na(AgeGroup) & !is.na(Sex)) %>%
+  group_by(AgeGroup, Sex) %>%
+  summarize(
+    Total_Population = n(),
+    Total_Unemployed = sum(Unemployed, na.rm = TRUE)
+  ) %>%
+  mutate(
+    Unemployment_Rate = (Total_Unemployed / Total_Population) * 100
+  )
+
+ggplot(age_sex_unemployment, aes(x = AgeGroup, y = Unemployment_Rate, color = Sex, group = Sex)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(
+    title = "Unemployment Rate Across Age Groups by Sex",
+    x = "Age Group",
+    y = "Unemployment Rate (%)",
+    color = "Sex"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+Next, we move on to examine how unemployment trends vary by gender across different age groups. Among the youngest workers, unemployment rates exceed 12% for both males and females, with males slightly more affected. This might be because that young men enter the workforce earlier, often through part-time jobs or entry-level roles, and they also may face challenges securing stable employment. In contrast, young women might delay workforce entry due to education or other social factors, resulting in slightly lower unemployment rates.
+
+In early adulthood, unemployment rates drop significantly for both genders, although males still face marginally higher rates. This suggests that young men may encounter difficulties transitioning into stable, full-time employment, though the gap is small as education and experience improve job prospects for both.
+
+For the prime working ages of 30-69, unemployment rates stabilize between 5% and 6%, with minimal gender differences. Economic stability and equal workplace opportunities during these years support comparable employment conditions for men and women.
+
+In older age groups, unemployment rates increase slightly, with females experiencing higher rates. This could result from age discrimination, while males often continue working longer due to traditional roles or financial needs.
+
+#### Sex & Race
+
+```{r}
+cleaned1_data <- cleaned_data %>%
+  mutate(RACE = as.character(RACE))
+
+# Merge race labels into cleaned_data using your existing race_table
+cleaned1_data <- cleaned1_data %>%
+  left_join(race_table, by = c("RACE" = "Value")) %>%
+  rename(Race = Label)
+
+# Prepare data for the heatmap
+race_gender_data <- cleaned1_data %>%
+  mutate(
+    SEX = factor(SEX, levels = c(1, 2), labels = c("Male", "Female")),
+    EMPSTAT = factor(EMPSTAT, levels = c(1, 2), labels = c("Employed", "Unemployed"))
+  ) %>%
+  filter(SEX %in% c("Male", "Female"))  # Include only Male and Female genders
+
+# Summarize unemployment by race and gender
+race_gender_unemployment <- race_gender_data %>%
+  group_by(Race, SEX, EMPSTAT) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  pivot_wider(names_from = EMPSTAT, values_from = count, values_fill = 0) %>%
+  rename(
+    employed = Employed,
+    unemployed = Unemployed,
+    Gender = SEX
+  ) %>%
+  mutate(
+    total = employed + unemployed,
+    unemployment_rate = unemployed / total
+  )
+
+# Prepare data for plotting
+race_gender_unemployment_plot <- race_gender_unemployment %>%
+  select(Race, Gender, unemployment_rate)
+
+# Plot the unemployment rate by race and gender using a heatmap
+ggplot(data = race_gender_unemployment_plot, aes(x = Gender, y = Race, fill = unemployment_rate)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(
+    low = "lightblue",
+    high = "red",
+    name = "Unemployment Rate"
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Unemployment Rate by Race and Gender",
+    x = "Gender",
+    y = "Race"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+The results show that racial minorities, particularly Black/African American and American Indian or Alaska Native individuals, experience the most significant unemployment disparities. Both men and women in these groups face higher unemployment rates, underscoring the dominant influence of race in shaping employment opportunities.
+
+In contrast, racial groups such as White and Japanese show consistently lower unemployment rates, with males generally faring slightly better than females. This suggests that while gender disparities exist within certain racial groups, race tends to play a more substantial role in determining employment outcomes across the population.
+
+Having examined the interplay of demographic factors such as race, gender, and age, we now shift our focus to the relationship between educational attainment and employment status. Education often serves as a key determinant of job opportunities and stability, making it crucial to understand its role in shaping unemployment patterns.
+
+## Analysis on Education Level
+This analysis seeks to understand the relationship between educational attainment and employment status, based on the premise that higher education generally leads to better job prospects and lower unemployment. By examining this correlation, we aim to quantify how education impacts employment outcomes, providing insights into how education influences job security and labor market stability.
+
+```{r}
+# Recode the educational levels into understandable categories
+cleaned_data <- cleaned_data %>%
+  mutate(EDUC = case_when(
+    EDUC == 0 ~ "No schooling",
+    EDUC %in% 1:3 ~ "Primary school",
+    EDUC %in% 4:6 ~ "High school",
+    EDUC %in% 7:9 ~ "Some college",
+    EDUC %in% 10:11 ~ "Bachelor's degree",
+    EDUC == 12 ~ "Master's or above"
+  ))
+
+# Group the data by educational level and employment status
+employment_education <- cleaned_data %>%
+  group_by(EDUC, EMPSTAT) %>%
+  summarise(count = n()) %>%
+  spread(EMPSTAT, count, fill = 0) %>%
+  rename(employed = `1`, unemployed = `2`) %>%
+  mutate(total = employed + unemployed,
+         unemployment_rate = unemployed / total)
+
+# Fit a linear model to predict unemployment rate by educational level
+employment_education$EDUC_numeric <- as.numeric(factor(employment_education$EDUC, 
+                                         levels = c("No schooling", "Primary school", 
+                                                    "High school", "Some college", 
+                                                    "Bachelor's degree", "Master's or above")))
+
+model <- lm(unemployment_rate ~ EDUC_numeric, data = employment_education)
+
+# Predict unemployment rate
+employment_education$predicted_unemployment <- predict(model)
+
+# Plot the real data and the expected trend line
+ggplot(employment_education, aes(x = EDUC_numeric, y = unemployment_rate)) +
+  geom_point(aes(color = EDUC), size = 3) +  # Real data points
+  geom_line(aes(x = EDUC_numeric, y = predicted_unemployment), color = "blue", size = 1) +  # Expected trend line
+  scale_x_continuous(breaks = 1:6, labels = c("No schooling", "Primary school", 
+                                              "High school", "Some college", 
+                                              "Bachelor's degree", "Master's or above")) +
+  labs(title = "Unemployment Rate by Education Level",
+       x = "Education Level",
+       y = "Unemployment Rate",
+       color = "Education Level") +
+  theme_minimal() 
+```
+
+```{r}
+# Calculate the correlation coefficient between education level and unemployment rate
+correlation_coefficient <- cor(employment_education$EDUC_numeric, employment_education$unemployment_rate)
+
+# Print the correlation coefficient
+print(paste("Correlation coefficient between education level and unemployment rate:", correlation_coefficient))
+```
+
+The findings reveal a very strong negative correlation (-0.944) between educational attainment and unemployment rates, indicating that higher levels of education are strongly associated with lower unemployment. This suggests that individuals with more advanced qualifications are not only better equipped with the skills and knowledge needed in the workforce, but also more adaptable to changing economic conditions. The near-perfect negative correlation underscores the critical role education plays in reducing unemployment risk, particularly during periods of economic instability like the post-COVID-19 recovery. It highlights the importance of investing in education as a long-term solution to enhance labor market resilience, improve job security, and foster sustained economic growth, especially for vulnerable populations.
+
+# VI. Conclusion and Further Implication
+In conclusion, This analysis provides a comprehensive examination of unemployment trends across the United States, revealing significant geographical, demographic, and educational disparities. By analyzing data from multiple perspectives, we identified key patterns that offer deeper insights into the factors shaping unemployment.
+
+First of all, geographical disparities are particularly important, with unemployment rates varying significantly across states. Regional economic conditions and industry compositions play a crucial role in these differences. For example, states like California and Nevada, heavily reliant on industries such as hospitality and entertainment, exhibit higher unemployment rates due to the severe impact of the COVID-19 pandemic on these sectors. In contrast, states in the Northern Midwest, such as North Dakota and Nebraska, maintain lower unemployment rates, supported by stable industries like agriculture and energy that experienced less disruption.
+
+Furthermore, demographic factors also significantly influence unemployment, with certain groups disproportionately affected. Black/African American and American Indian or Alaska Native individuals face notably higher unemployment rates, highlighting systemic barriers to employment opportunities. While gender disparities are relatively minimal, younger males experience slightly higher unemployment rates, possibly due to difficulties transitioning into stable jobs. Age-related trends reveal that unemployment is highest among young workers, gradually declines with age during prime working years, and then slightly increases as workers near retirement. Also, regarding the interactions, Young Black or American Indian individuals, for example, face higher unemployment rates compared to their peers in other racial groups. Similarly, older women experience slightly higher unemployment rates than men in the same age range, suggesting that the compounded effects of race, gender, and age create unique challenges for certain groups in the labor market.
+
+At least, Education plays as a powerful determinant of employment stability. Our analysis demonstrates a strong negative correlation between educational attainment and unemployment rates. Individuals with advanced degrees face significantly lower unemployment risks.
+Overall, these findings emphasize the complex interplay of geography, demographics, and education in shaping unemployment trends, providing valuable insights for designing targeted and equitable policy interventions.
+
+**Further Research Direction**
+
+While our research focuses on 2021, it highlights the potential for future studies to explore the long-term effects of the COVID-19 pandemic on employment. A longitudinal study could track labor market outcomes over time, shedding light on whether the disparities observed in 2021—across demographic groups and regions—persist or diminish as the economy continues to recover. Additionally, our analysis emphasizes education as a key factor influencing employment, but future research could expand this perspective by examining the role of other technical skills, such as certifications, job-specific training, or digital proficiency. Understanding how these skill sets impact unemployment rates would offer a more comprehensive view of the factors shaping job stability. Furthermore, the pandemic's effect on mental health introduces another crucial area for exploration. Investigating how mental health challenges affect job retention and productivity could help design policies that not only enhance workforce participation but also prioritize well-being in the labor market.
+
+
+# VII. References
+U.S. Census data for social, economic, and Health Research. IPUMS USA. https://usa.ipums.org/usa/
+
+Gezici, A., Ozay, O. An Intersectional Analysis of COVID-19 Unemployment. J Econ Race Policy 3, 270–281 (2020). https://doi.org/10.1007/s41996-020-00075-w
+
