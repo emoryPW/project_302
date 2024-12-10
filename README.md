@@ -12,16 +12,12 @@ Investigate the relationship between educational attainment and unemployment, qu
 
 Provide insights that can inform policymakers, educators, and employers on strategies to address unemployment disparities and strengthen labor market resilience.
 ## Contents of the Repository
-##### Data Preprocessing and Cleaning:
-Code and scripts that load the raw data, clean missing values, remove duplicates, and create derived variables for easier analysis.
+##### Original Dataset & Cleaned Dataset
+Orginial dataset we get from IPUMS USA, and the cleaned data set we generated for our analysis
 ##### EDA Notebooks:
 Jupyter/R Markdown notebooks containing the exploratory analysis, visualization, and interpretation of results.
-##### Data Visualization:
-Scripts and code blocks that produce maps, bar charts, pie charts, and heatmaps illustrating key trends in the dataset.
-##### Statistical Analysis:
-Correlation analyses and regression models evaluating the relationship between educational attainment and unemployment.
-##### Conclusion & Insights:
-Summary of key findings, implications for policy, and suggestions for future research directions.
+##### Renv Files
+Renv files that can help users recontruct our library, which is located in **"Renv Files"** folder.
 ## How to Use This Repository
 Clone the Repository:
 git clone https://github.com/yourusername/your-repo-name.git
