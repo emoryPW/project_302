@@ -21,15 +21,14 @@ Jupyter/R Markdown notebooks containing the exploratory analysis, visualization,
 Renv files that can help users recontruct our library, which is located in **"Renv Files"** folder.
 
 ## How to Use This Repository
-Clone the Repository: git clone https://github.com/yourusername/your-repo-name.git
-Set Up Environment:  
-Install the required R packages before running the analysis notebooks. A sample list of required packages includes:
+Clone the Repository: git clone https://github.com/yourusername/your-repo-name.git  
+Set Up Environment: Install the required R packages before running the analysis notebooks.  
+A sample list of required packages includes:
 **tidyverse, maps, ggplot2, readr, viridis, dplyr**, to import these libraries in R, use:  
 ```{r}
 install.packages(c("tidyverse", "maps", "ggplot2", "readr", "viridis", "dplyr"))
 ```  
-Run the EDA Notebook:
-Open the .Rmd or .ipynb files in RStudio or Jupyter Notebook to reproduce the analysis. Execute code cells in sequence to replicate data preprocessing, visualization, and statistical modeling steps.
+Run the EDA Notebook: Open the .Rmd or .ipynb files in RStudio or Jupyter Notebook to reproduce the analysis. Execute code cells in sequence to replicate data preprocessing, visualization, and statistical modeling steps.
 
 ## Interpreting Results:
 Review plots, charts, and summary tables to understand unemployment distributions by state and demographic factors.
