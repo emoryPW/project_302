@@ -21,7 +21,10 @@ Jupyter/R Markdown notebooks containing the exploratory analysis, visualization,
 Renv files that can help users recontruct our library, which is located in **"Renv Files"** folder.
 
 ## How to Use This Repository
-Clone the Repository: git clone https://github.com/yourusername/your-repo-name.git  
+Clone the Repository:  
+```{python}
+git clone https://github.com/yourusername/your-repo-name.git
+```  
 Set Up Environment: Install the required R packages before running the analysis notebooks.  
 A sample list of required packages includes:
 **tidyverse, maps, ggplot2, readr, viridis, dplyr**, to import these libraries in R, use:  
