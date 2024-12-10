@@ -13,11 +13,11 @@ Investigate the relationship between educational attainment and unemployment, qu
 Provide insights that can inform policymakers, educators, and employers on strategies to address unemployment disparities and strengthen labor market resilience.
 
 ## Contents of the Repository
-### Original Dataset & Cleaned Dataset
+### Original Dataset & Cleaned Dataset:
 Orginial dataset we get from IPUMS USA, and the cleaned data set we generated for our analysis
 ### EDA Notebooks:
 Jupyter/R Markdown notebooks containing the exploratory analysis, visualization, and interpretation of results.
-### Renv Files
+### Renv Files:
 Renv files that can help users recontruct our library, which is located in **"Renv Files"** folder.
 
 ## How to Use This Repository
