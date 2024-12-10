@@ -32,7 +32,9 @@ readr
 viridis
 dplyr
 Use:
+```{r}
 install.packages(c("tidyverse", "maps", "ggplot2", "readr", "viridis", "dplyr"))
+```
 Run the EDA Notebook:
 Open the .Rmd or .ipynb files in RStudio or Jupyter Notebook to reproduce the analysis. Execute code cells in sequence to replicate data preprocessing, visualization, and statistical modeling steps.
 
