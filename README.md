@@ -3,10 +3,14 @@
 This repository contains an exploratory data analysis (EDA) project focused on understanding unemployment trends in the United States during the year 2021, a period marked by the ongoing recovery from the COVID-19 pandemic. Using microdata from IPUMS USA, we investigate how unemployment distributions vary across states and demographic groups, as well as the influence of factors such as age, race, gender, and education level on employment outcomes.
 
 ## Goals of the Project
-##### Regional Analysis: Identify geographical disparities in unemployment rates across different U.S. states and discuss potential factors contributing to these differences.
-##### Demographic Disparities: Examine how race, gender, and age correlate with unemployment outcomes, highlighting groups that are disproportionately affected.
-##### Education and Employment: Investigate the relationship between educational attainment and unemployment, quantifying the protective effect of education during economic instability.
-##### Policy Implications: Provide insights that can inform policymakers, educators, and employers on strategies to address unemployment disparities and strengthen labor market resilience.
+##### Regional Analysis: 
+Identify geographical disparities in unemployment rates across different U.S. states and discuss potential factors contributing to these differences.
+##### Demographic Disparities: 
+Examine how race, gender, and age correlate with unemployment outcomes, highlighting groups that are disproportionately affected.
+##### Education and Employment: 
+Investigate the relationship between educational attainment and unemployment, quantifying the protective effect of education during economic instability.
+##### Policy Implications: 
+Provide insights that can inform policymakers, educators, and employers on strategies to address unemployment disparities and strengthen labor market resilience.
 ## Contents of the Repository
 ##### Data Preprocessing and Cleaning:
 Code and scripts that load the raw data, clean missing values, remove duplicates, and create derived variables for easier analysis.
@@ -42,4 +46,4 @@ Contributing
 Contributions to improve the code, add new analyses, or extend the dataset are welcome. Please submit a pull request or open an issue if you encounter bugs, have suggestions, or wish to contribute new features.
 
 ## Contact
-For questions, comments, or collaboration inquiries, please reach out to XiPu Wang at xipu.wang@emory.edu.This project is for QTM302W at Emory University, the authors include: Nora Zhou, Mandy Zhou, Ruihan Zhang, Xipu Wang.
+For questions, comments, or collaboration inquiries, please reach out to XiPu Wang at xipu.wang@emory.edu. This project is for QTM302W at Emory University, the authors include: Nora Zhou, Mandy Zhou, Ruihan Zhang, Xipu Wang.
